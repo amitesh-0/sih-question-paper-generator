@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  db:
+    # We use pgvector image so your DB is ready for AI embeddings later
+    image: ankane/pgvector:latest 
+    container_name: sih_local_db
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: sih_exam_db
+    ports:
+      - "5433:5432"
+    volumes:
+      # The Magic Trick: Docker automatically runs any .sql file placed in this specific folder on startup
+      # Updated path to point to the new location in database/ folder
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/init.sql
+      # Saves your data locally so it doesn't delete when you shut down Docker
+      - pg_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: sih_backend
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=admin
+      - DB_PASSWORD=password123
+      - DB_NAME=sih_exam_db
+    depends_on:
+      - db
+
+volumes:
+  pg_data:

@@ -71,3 +71,4 @@ coverage.xml
 
 # Miscellaneous
 *.log
+pyrightconfig.json
